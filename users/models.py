@@ -43,6 +43,14 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+    def save(self, *args, **kwargs):
+        if self.user.is_school:
+            raise ValueError("User Profile cannot be created for schools")
+        super().save(**args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
     def delete_related_data(self):
         self.reviews.all().delete()
         self.bookmarks.all().delete()

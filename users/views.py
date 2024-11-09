@@ -26,7 +26,10 @@ class UserProfileRetriveUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        return self.request.user
+        user = self.request.user
+        if user.is_school:
+            raise PermissionError("School users cannot access a user profile.")
+        return user
 
 
 user_profile_update = UserProfileRetriveUpdateView.as_view

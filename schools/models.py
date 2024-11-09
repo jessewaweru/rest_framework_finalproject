@@ -85,6 +85,16 @@ class School(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if not self.user.is_school:
+            raise ValueError(
+                "School Profile can only be created by school account holders."
+            )
+        super().save(**args, **kwargs)
+
+    def __str__(self):
+        return f"School:{self.name}"
+
 
 class Bookmark(models.Model):
     user = models.ForeignKey(

@@ -21,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "user_type",
+            "is_school",
             "profile",
         ]
         extra_kwargs = {"password": {"write_only": True}}
@@ -30,7 +31,8 @@ class UserSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(validated_data["password"])
         user.save()
-        UserProfile.objects.create(user=user, **profile_data)
+        if not user.is_school:
+            UserProfile.objects.create(user=user, **profile_data)
         return user
 
     def update(self, instance, validated_data):
@@ -40,7 +42,9 @@ class UserSerializer(serializers.ModelSerializer):
         if "password" in validated_data:
             instance.set_password(validated_data["password"])
         instance.save()
-        UserProfile.objects.update_or_create(user=instance, defaults="profile_data")
+        if not instance.is_school:
+            UserProfile.objects.update_or_create(user=instance, defaults="profile_data")
+        return instance
 
 
 class ReviewSerializer(serializers.ModelSerializer):

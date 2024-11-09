@@ -7,7 +7,7 @@ from django.conf import settings
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_profile(sender, instance, created, **kwargs):
-    if created:
+    if created and not instance.is_school:
         UserProfile.objects.create(user=instance)
 
 
