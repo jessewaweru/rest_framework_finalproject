@@ -1,0 +1,9 @@
+algoliasearch-django
+django
+djangorestframework
+djangorestframework-simplejwt
+pyyaml
+pillow
+requests
+django-cors-headers
+python-decouple
