@@ -5,6 +5,9 @@ from django.apps import apps
 from schools.models import School
 
 
+from django.conf import settings
+
+
 class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ("parent", "Parent"),
@@ -28,11 +31,13 @@ class User(AbstractUser):
             return None
 
     def get_user_by_id(id):
-        return School.objects.get(id=id)
+        return User.objects.get(id=id)
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="userprofile"
+    )
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
     location = models.CharField(max_length=300)
@@ -40,13 +45,13 @@ class UserProfile(models.Model):
     county = models.CharField(max_length=200, default="Kenya")
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.user.username
+    # def __str__(self):
+    #     return self.user.username
 
-    def save(self, *args, **kwargs):
-        if self.user.is_school:
-            raise ValueError("User Profile cannot be created for schools")
-        super().save(**args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.user.is_school:
+    #         raise ValueError("User Profile cannot be created for schools")
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username}'s profile"
@@ -70,3 +75,16 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review by {self.user.username} for {self.school.name}"
+
+
+# History status for normal users
+class History(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-viewed_at"]
+
+    def __str__(self):
+        return f"{self.user.username}viewed{self.school.name}on{self.viewed_at}"

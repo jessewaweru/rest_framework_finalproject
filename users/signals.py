@@ -3,17 +3,31 @@ from django.dispatch import receiver
 from users.models import User, UserProfile
 from django.core.mail import send_mail
 from django.conf import settings
+from schools.models import School
 
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created and not instance.is_school:
-        UserProfile.objects.create(user=instance)
+@receiver(post_save, sender=User)
+def manage_user_and_school_profile(sender, instance, created, **kwargs):
+    if created:
+        # Check if the user is a school
+        if instance.is_school:
+            School.objects.create(profile=instance)
+            print("School profile created for school user.")
+        else:
+            UserProfile.objects.create(user=instance)
+            print("User profile created for regular user.")
+
+    else:
+        # Update the UserProfile if it exists for non-school users
+        if not instance.is_school:
+            user_profile, _ = UserProfile.objects.update_or_create(user=instance)
+            user_profile.save()
 
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def save_user_profile(sender, instance, created, **kwargs):
-    instance.userprofile.save()
+@receiver(post_save, sender=School)
+def prompt_school_profile_completion(sender, instance, created, **kwargs):
+    if created:
+        print("Redirecting to school profile completion page.")
 
 
 @receiver(post_delete, sender=User)

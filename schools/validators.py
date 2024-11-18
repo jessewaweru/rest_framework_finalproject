@@ -8,7 +8,9 @@ import re
 
 def validate_name(value):
     if len(value) < 3 or len(value) > 100:
-        raise ValidationError("Name must be between 3 and 100 characters")
+        raise ValidationError(
+            f"Name length must be between 3 and 100 characters. You entered {len(value)} characters."
+        )
     return value
 
 

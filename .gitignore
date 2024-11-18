@@ -1,1 +1,16 @@
 .env
+/venv/*
+/logs/*
+
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/db.sqlite3
+
+app.log*
+.vscode/

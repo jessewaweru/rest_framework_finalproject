@@ -9,6 +9,22 @@ from schools.serializers import SchoolSerializer
 from django.db.models import Avg
 from .serializers import UserSerializer
 from rest_framework import permissions
+from rest_framework.views import APIView
+from schools.models import Bookmark
+from django.core.exceptions import PermissionDenied
+from .serializers import HistorySerializer
+from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from datetime import timedelta
+from .models import History
+
+
+class ReviewCreateAPIView(generics.CreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+
+review_create_view = ReviewCreateAPIView.as_view()
 
 
 class UserInteractionsViewset(viewsets.ViewSet):
@@ -28,29 +44,86 @@ class UserProfileRetriveUpdateView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         user = self.request.user
         if user.is_school:
-            raise PermissionError("School users cannot access a user profile.")
+            raise PermissionDenied("School users cannot access a user profile.")
         return user
 
 
 user_profile_update = UserProfileRetriveUpdateView.as_view
 
-# User-Specific Recommendations:
-# @action(detail=False, methods=['get'])
-# def recommended_schools(self, request):
-#     user = request.user
-#     # Assuming a recommendation logic exists
-#     queryset = School.objects.filter(location=user.preferred_location)
-#     serializer = self.get_serializer(queryset, many=True)
-#     return Response(serializer.data)
+
+class UserDashboardAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        data = {
+            "number_of_bookmarked_schools": self.get_bookmarked_schools_count(user),
+            "top_rated_schools": self.get_top_rated_schools(),
+            "recently_reviewed_schools": self.get_recently_reviewed_schools(user),
+            "activity_feed": self.get_activity_feed(user),
+            "average_rating_of_bookmarked_schools": self.get_average_rating_of_bookmarked_schools(
+                user
+            ),
+            "personalized_recommendations": self.get_personalized_recommendations(user),
+            # "engagement_insights": self.get_engagement_insights(user),
+        }
+        return Response(data)
+
+    def get_bookmarked_schools_count(self, user):
+        return Bookmark.objects.filter(user=user).count()
+
+    def get_top_rated_schools(self):
+        top_schools = School.objects.annotate(
+            avg_rating=Avg("reviews__rating")
+        ).order_by("-avg_rating")[:5]
+        return SchoolSerializer(top_schools, many=True).data
+
+    def get_recently_reviewed_schools(self, user):
+        recent_reviews = Review.objects.filter(school__bookmark__user=user).order_by(
+            "-created_at"
+        )[:5]
+        return ReviewSerializer(recent_reviews, many=True).data
+
+    def get_activity_feed(self, user):
+        bookmarks = Bookmark.objects.filter(user=user).order_by("-created_by")[:5]
+        reviews = Review.objects.filter(user=user).order_by("-created_by")[:5]
+        return {
+            "recent_bookmarks": [
+                {"school": bookmark.school.name, "date": bookmark.created_at}
+                for bookmark in bookmarks
+            ],
+            "recent_reviews": [
+                {
+                    "school": review.school.name,
+                    "rating": review.rating,
+                    "date": review.created_at,
+                }
+                for review in reviews
+            ],
+        }
+
+    def get_average_rating_of_bookmarked_schools(self, user):
+        bookmarked_schools_ids = Bookmark.objects.filter(user=user).values_list(
+            "school_id", flat=True
+        )
+        avg_rating = Review.objects.filter(
+            school_id__in=bookmarked_schools_ids
+        ).aggregate(Avg("rating"))
+        return avg_rating["rating__avg"]
+
+    def get_personalized_recommendations(self, user):
+        bookmarked_schools_ids = Bookmark.objects.filter(user=user).values_list(
+            "school_id", flat=True
+        )
+        recommended_schools = (
+            School.objects.exclude(pk__in=bookmarked_schools_ids)
+            .annotate(avg_rating=Avg("reviews__rating"))
+            .order_by("-avg_rating")[:5]
+        )
+        return SchoolSerializer(recommended_schools, many=True).data
 
 
-# Recently Visited Schools:
-# @action(detail=False, methods=['get'])
-# def recently_viewed(self, request):
-#     user = request.user
-#     queryset = user.recent_views.order_by('-viewed_at')[:10]
-#     serializer = SchoolSerializer(queryset, many=True)
-#     return Response(serializer.data)
+user_dashboard = UserDashboardAPIView.as_view()
 
 
 class ReviewCreateAPIView(generics.CreateAPIView):
@@ -59,3 +132,20 @@ class ReviewCreateAPIView(generics.CreateAPIView):
 
 
 review_create_view = ReviewCreateAPIView.as_view()
+
+
+# filter user history based on a specified period
+class HistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = HistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        days = self.request.query_params.get("days", 1)
+        try:
+            days = int(days)
+        except ValueError:
+            days = 1
+
+        time_threshold = timezone.now() - timedelta(days=days)
+        return History.objects.filter(user=user, viewed_at__gte=time_threshold)

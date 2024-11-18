@@ -8,9 +8,11 @@ router.register(r"users", UserViewset, basename="user")
 
 urlpatterns = [
     path("", include(router.urls)),
-    # path("/api/v1/user/<int:id>/", views.get_user_by_id, name="get_user_by_id"),
-    # path("api/v1/user/<int:id>/", views.get_user_by_id, name="get_user_by_id"),
-    path("users/", include("users.urls")),
-    path("schools/", include("schools.urls")),
-    # path("v1/users/get/", get_user_by_id, name="get_user_by_id"),
+    path("users/", include(("users.urls", "users"), namespace="users")),
+    path("schools/", include(("schools.urls", "schools"), namespace="schools")),
+    path(
+        "notifications/",
+        include(("notifications.urls", "notifications"), namespace="notifications"),
+    ),
+    path("search/", include(("search.urls", "search"), namespace="search")),
 ]

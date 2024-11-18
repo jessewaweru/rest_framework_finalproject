@@ -10,11 +10,25 @@ from .validators import (
     validate_contact,
     validate_award,
 )
-from .models import Bookmark
+from .models import Bookmark, Event
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "title",
+            "created_at",
+            "target_audience",
+            "announcement",
+            "image",
+        ]
 
 
 class SchoolSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)
+    events = EventSerializer(many=True, read_only=True)
     url = serializers.HyperlinkedIdentityField(
         view_name="school_detail", lookup_field="pk"
     )
@@ -33,7 +47,6 @@ class SchoolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = School
-        # fields = "__all__"
         fields = [
             "url",
             "profile",
@@ -49,6 +62,7 @@ class SchoolSerializer(serializers.ModelSerializer):
             "contact",
             "website",
             "reviews",
+            "events",
         ]
 
 
@@ -56,23 +70,25 @@ class SchoolSerializer(serializers.ModelSerializer):
 # def get_school_url(school):
 #     return reverse("school_detail", kwargs={"pk": school.pk})
 class SchoolProfileSerializer(serializers.ModelSerializer):
-    model = School
-    fields = [
-        "url",
-        "profile",
-        "name",
-        "description",
-        "location",
-        "image",
-        "award",
-        "school_status",
-        "school_type",
-        "boarding_status",
-        "facility",
-        "contact",
-        "website",
-        "reviews",
-    ]
+    class Meta:
+        model = School
+        fields = [
+            "url",
+            "profile",
+            "name",
+            "description",
+            "location",
+            "video",
+            "image",
+            "award",
+            "school_status",
+            "school_type",
+            "boarding_status",
+            "facility",
+            "contact",
+            "website",
+            "reviews",
+        ]
 
 
 class SchoolAnalyticsSerializer(serializers.ModelSerializer):
@@ -102,6 +118,31 @@ class SchoolAnalyticsSerializer(serializers.ModelSerializer):
                 "rating": review.rating,
             }
             for review in obj.recent_reviews
+        ]
+
+
+class SchoolCompareSerializer(serializers.ModelSerializer):
+    average_rating = serializers.ReadOnlyField()
+    total_reviews = serializers.ReadOnlyField()
+    total_bookmarks = serializers.ReadOnlyField()
+
+    class Meta:
+        model = School
+        fields = [
+            "name",
+            "location",
+            "city",
+            "county",
+            "school_type",
+            "boarding_status",
+            "description",
+            "average_rating",
+            "total_reviews",
+            "facilities",
+            "website",
+            "contact",
+            "award",
+            "total_bookmarks",
         ]
 
 

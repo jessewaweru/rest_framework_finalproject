@@ -1,9 +1,11 @@
 algoliasearch-django
 django
 djangorestframework
+django_extensions
 djangorestframework-simplejwt
 pyyaml
 pillow
 requests
 django-cors-headers
 python-decouple
+drf-yasg

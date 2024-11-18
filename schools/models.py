@@ -2,15 +2,43 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Avg, Count
 from datetime import datetime, timedelta
+from django.core.validators import FileExtensionValidator
+from rest_framework.validators import ValidationError
 
 # from Users.models import SchoolUserProfile
 from django.apps import apps
+
+
+class Event(models.Model):
+    """Its a model for the events section for a school profile
+    where schools can showcase their announcements"""
+
+    school = models.ForeignKey(
+        "School", on_delete=models.CASCADE, related_name="events"
+    )
+    title = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    target_audience = models.CharField(
+        max_length=200,
+        choices=[
+            ("parents", "Parents"),
+            ("teachers", "Teachers"),
+            ("public", "Public"),
+        ],
+        default="public",
+    )
+    announcement = models.TextField()
+    image = models.ImageField(upload_to="schools/events/images/", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.title}for{self.school.name}"
 
 
 class School(models.Model):
     profile = models.OneToOneField(
         "users.User",  # Reference the model by its app label and model name as a string
         on_delete=models.CASCADE,
+        related_name="profile",
     )
     views = models.PositiveIntegerField(default=0)
     name = models.CharField(max_length=300)
@@ -48,6 +76,14 @@ class School(models.Model):
         choices=BOARDING_STATUS,
         default=NON_BOARDING,
     )
+    video = models.FileField(
+        upload_to="schools/videos",
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["mp4", "mov", "avi"]),
+        ],
+    )
     image = models.ImageField(upload_to="schools/images/", null=True, blank=True)
     award = models.CharField(max_length=300, blank=True)
     facility = models.TextField(blank=True)
@@ -58,10 +94,18 @@ class School(models.Model):
     def total_reviews(self):
         return self.reviews.count()
 
+    # @property
+    # def average_rating(self):
+    #     avg_rating = self.reviews.aggregate(Avg("rating"["rating_avg"]))
+    #     return avg_rating if avg_rating else "No average ratings"
     @property
     def average_rating(self):
-        avg_rating = self.reviews.aggregate(Avg("rating"["rating_avg"]))
-        return avg_rating if avg_rating else "No average ratings"
+        avg_rating = self.reviews.aggregate(Avg("rating"))  # Correcting the syntax here
+        return (
+            avg_rating["rating__avg"]
+            if avg_rating["rating__avg"] is not None
+            else "No average ratings"
+        )
 
     @property
     def total_bookmarks(self):
@@ -85,12 +129,30 @@ class School(models.Model):
     def __str__(self):
         return self.name
 
+    # def save(self, *args, **kwargs):
+    #     if not self.profile.is_school:
+    #         raise ValueError(
+    #             "School Profile can only be created by school account holders."
+    #         )
+    #     super().save(*args, **kwargs)
     def save(self, *args, **kwargs):
-        if not self.user.is_school:
+        if not self.profile.is_school:
             raise ValueError(
                 "School Profile can only be created by school account holders."
             )
-        super().save(**args, **kwargs)
+
+        # Ensure profile is set before saving
+        if not self.profile:
+            raise ValueError("School profile must be linked to a valid user profile.")
+
+        super().save(*args, **kwargs)
+
+    def clean(self, request, *args, **kwargs):
+        super().clean()
+        if self.video and self.video.size > settings.MAX_VIDEO_UPLOAD_SIZE:
+            raise ValidationError(
+                "The video file is too large. Maximum size allowed is 50 MB."
+            )
 
     def __str__(self):
         return f"School:{self.name}"

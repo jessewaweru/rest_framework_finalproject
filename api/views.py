@@ -11,7 +11,7 @@ class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsStaffPermissionMixin]
 
-    def delete(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         user = self.get_object()
         user.delete_related_data()
         self.perform_destroy(user)
