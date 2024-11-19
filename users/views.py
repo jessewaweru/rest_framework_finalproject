@@ -57,7 +57,7 @@ class UserDashboardAPIView(APIView):
     def get(self, request):
         user = request.user
         data = {
-            "number_of_bookmarked_schools": self.get_bookmarked_schools_count(user),
+            # "number_of_bookmarked_schools": self.get_bookmarked_schools_count(user),
             "top_rated_schools": self.get_top_rated_schools(),
             "recently_reviewed_schools": self.get_recently_reviewed_schools(user),
             "activity_feed": self.get_activity_feed(user),

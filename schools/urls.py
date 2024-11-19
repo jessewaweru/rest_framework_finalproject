@@ -14,7 +14,9 @@ router.register(
 app_name = "schools"
 
 urlpatterns = [
-    path("list-create/", views.school_list_create_view, name="school_list_create"),
+    path(
+        "schools/list-create/", views.school_list_create_view, name="school_list_create"
+    ),
     path("<int:pk>/update/", views.school_update_view, name="school_update"),
     path("<int:pk>/delete/", views.school_destroy_view, name="school_delete"),
     path("<int:pk>/detail/", views.school_detail_view, name="school_detail"),

@@ -31,7 +31,10 @@ class User(AbstractUser):
             return None
 
     def get_user_by_id(id):
-        return User.objects.get(id=id)
+        try:
+            return User.objects.get(id=id)
+        except User.DoesNotExist:
+            return None
 
 
 class UserProfile(models.Model):
@@ -44,9 +47,6 @@ class UserProfile(models.Model):
     city = models.CharField(max_length=200, default="Kenya")
     county = models.CharField(max_length=200, default="Kenya")
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # def __str__(self):
-    #     return self.user.username
 
     # def save(self, *args, **kwargs):
     #     if self.user.is_school:

@@ -129,25 +129,18 @@ class School(models.Model):
     def __str__(self):
         return self.name
 
-    # def save(self, *args, **kwargs):
-    #     if not self.profile.is_school:
-    #         raise ValueError(
-    #             "School Profile can only be created by school account holders."
-    #         )
-    #     super().save(*args, **kwargs)
     def save(self, *args, **kwargs):
         if not self.profile.is_school:
             raise ValueError(
                 "School Profile can only be created by school account holders."
             )
-
         # Ensure profile is set before saving
         if not self.profile:
             raise ValueError("School profile must be linked to a valid user profile.")
-
         super().save(*args, **kwargs)
 
-    def clean(self, request, *args, **kwargs):
+    # applied to the video field
+    def clean(self, *args, **kwargs):
         super().clean()
         if self.video and self.video.size > settings.MAX_VIDEO_UPLOAD_SIZE:
             raise ValidationError(

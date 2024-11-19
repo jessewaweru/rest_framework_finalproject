@@ -17,11 +17,13 @@ from .serializers import (
     SchoolProfileSerializer,
     SchoolAnalyticsSerializer,
     SchoolCompareSerializer,
+    SchoolBaseAnalyticsSerializer,
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from users.models import History
 from django.utils import timezone
+from rest_framework import permissions
 
 User = get_user_model()
 
@@ -43,7 +45,6 @@ class SchoolListCreateAPIView(IsStaffPermissionMixin, generics.ListCreateAPIView
             logger.error(f"Validation error during school creation:{e.detail}")
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            # logger.error(" An unexpected error occured during school creation")
             logger.error(f"Unexpected error occured in school creation:{e}")
             return Response(
                 {"error": "An unexpected error occurred."},
@@ -173,7 +174,7 @@ class SchoolBaseAnalyticsViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         school = get_object_or_404(School, pk=pk)
-        serializer = SchoolAnalyticsSerializer(school)
+        serializer = SchoolBaseAnalyticsSerializer(school)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
@@ -243,7 +244,7 @@ school_comparison_view = SchoolComparisonAPIView.as_view()
 
 
 """
-This is the API handling the redeirection of school profile accounts 
+This is the API handling the redeirection to school profile accounts 
 that are tied to their users who created them
 
 """

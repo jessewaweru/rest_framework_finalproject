@@ -2,7 +2,6 @@ from rest_framework import serializers
 from schools.models import School
 from users.serializers import ReviewSerializer
 from rest_framework.validators import UniqueValidator
-from django.urls import reverse
 from .validators import (
     validate_name,
     validate_description,
@@ -11,6 +10,7 @@ from .validators import (
     validate_award,
 )
 from .models import Bookmark, Event
+from django.db.models import Avg
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -69,6 +69,8 @@ class SchoolSerializer(serializers.ModelSerializer):
 # # Example function to get the fully qualified URL for a school
 # def get_school_url(school):
 #     return reverse("school_detail", kwargs={"pk": school.pk})
+
+
 class SchoolProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
@@ -119,6 +121,33 @@ class SchoolAnalyticsSerializer(serializers.ModelSerializer):
             }
             for review in obj.recent_reviews
         ]
+
+
+class SchoolBaseAnalyticsSerializer(serializers.ModelSerializer):
+    views = serializers.IntegerField()
+    bookmark_count = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    total_reviews = serializers.SerializerMethodField()
+    recent_reviews = ReviewSerializer(source="review_set", many=True)
+
+    class Meta:
+        model = School
+        fields = [
+            "views",
+            "bookmark_count",
+            "average_rating",
+            "total_reviews",
+            "recent_reviews",
+        ]
+
+    def get_bookmark_count(self, obj):
+        return obj.bookmarked_by.count()
+
+    def get_average_rating(self, obj):
+        return obj.review_set.aggregate(Avg("rating"))["rating__avg"] or 0
+
+    def get_total_reviews(self, obj):
+        return obj.review_set.count()
 
 
 class SchoolCompareSerializer(serializers.ModelSerializer):
