@@ -56,35 +56,35 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s profile"
 
-    def delete_related_data(self):
-        self.reviews.all().delete()
-        self.bookmarks.all().delete()
-        self.notifications.all().delete()
+    # def delete_related_data(self):
+    #     self.reviews.all().delete()
+    #     self.bookmarks.all().delete()
+    #     self.notifications.all().delete()
 
 
-class Review(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    school = models.ForeignKey(
-        "schools.School",  # Reference the model by its app label and model name as a string
-        related_name="reviews",
-        on_delete=models.CASCADE,
-    )
-    comment = models.TextField()
-    rating = models.PositiveIntegerField(default=5)
-    created_at = models.DateTimeField(auto_now_add=True)
+# class Review(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     school = models.ForeignKey(
+#         "schools.School",  # Reference the model by its app label and model name as a string
+#         related_name="reviews",
+#         on_delete=models.CASCADE,
+#     )
+#     comment = models.TextField()
+#     rating = models.PositiveIntegerField(default=5)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Review by {self.user.username} for {self.school.name}"
+#     def __str__(self):
+#         return f"Review by {self.user.username} for {self.school.name}"
 
 
 # History status for normal users
-class History(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    school = models.ForeignKey(School, on_delete=models.CASCADE)
-    viewed_at = models.DateTimeField(auto_now_add=True)
+# class History(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     school = models.ForeignKey(School, on_delete=models.CASCADE)
+#     viewed_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        ordering = ["-viewed_at"]
+#     class Meta:
+#         ordering = ["-viewed_at"]
 
-    def __str__(self):
-        return f"{self.user.username}viewed{self.school.name}on{self.viewed_at}"
+#     def __str__(self):
+#         return f"{self.user.username}viewed{self.school.name}on{self.viewed_at}"

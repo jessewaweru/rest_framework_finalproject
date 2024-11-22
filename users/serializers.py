@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import User, Review
+from .models import User
 from schools.validators import validate_rating
 from .models import UserProfile
-from .models import History
+
+# from .models import History
 
 """ This serializer is used to update and create a user and their User profile together"""
 
@@ -49,15 +50,15 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    rating = serializers.FloatField(validators=[validate_rating])
+# class ReviewSerializer(serializers.ModelSerializer):
+#     rating = serializers.FloatField(validators=[validate_rating])
 
-    class Meta:
-        model = Review
-        fields = ["user", "school", "comment", "rating", "created_at"]
+#     class Meta:
+#         model = Review
+#         fields = ["user", "school", "comment", "rating", "created_at"]
 
 
-class HistorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = History
-        fields = ["school", "viewed_at"]
+# class HistorySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = History
+#         fields = ["school", "viewed_at"]
