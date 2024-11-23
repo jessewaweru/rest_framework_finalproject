@@ -2,8 +2,9 @@ from rest_framework import serializers
 from .models import User
 from schools.validators import validate_rating
 from .models import UserProfile
+from .models import Review
 
-# from .models import History
+from .models import History
 
 """ This serializer is used to update and create a user and their User profile together"""
 
@@ -31,8 +32,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         profile_data = validated_data.pop("profile", {})
-        user = User(**validated_data)
-        user.set_password(validated_data["password"])
+        password = validated_data.pop("password")  # Extract password
+        user = User.objects.create_user(**validated_data)  # Use create_user method
+        user.set_password(password)  # Hash the password
         user.save()
         if not user.is_school:
             UserProfile.objects.create(user=user, **profile_data)
@@ -50,15 +52,15 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-# class ReviewSerializer(serializers.ModelSerializer):
-#     rating = serializers.FloatField(validators=[validate_rating])
+class ReviewSerializer(serializers.ModelSerializer):
+    rating = serializers.FloatField(validators=[validate_rating])
 
-#     class Meta:
-#         model = Review
-#         fields = ["user", "school", "comment", "rating", "created_at"]
+    class Meta:
+        model = Review
+        fields = ["user", "school", "comment", "rating", "created_at"]
 
 
-# class HistorySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = History
-#         fields = ["school", "viewed_at"]
+class HistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = History
+        fields = ["school", "viewed_at"]

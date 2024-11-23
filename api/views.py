@@ -4,15 +4,13 @@ from users.serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 
-# from .permissions import IsStaffOrAccOwner
-
-# from .mixins import IsStaffPermissionMixin
+from .permissions import IsStaffOrAccOwner
 
 
 class UserViewset(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = [IsStaffOrAccOwner]
+    permission_classes = [IsStaffOrAccOwner]
 
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
