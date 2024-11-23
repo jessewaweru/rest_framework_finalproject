@@ -25,9 +25,6 @@ from .serializers import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-# from users.models import History
-
-# from django.utils import timezone
 from rest_framework import permissions
 from api.permissions import IsStaffOrAccOwner
 
@@ -102,6 +99,24 @@ logger = logging.getLogger(__name__)
 
 
 class SchoolViewSet(viewsets.ModelViewSet):
+    """
+    retrieve:
+    Return a specific school by its ID.
+
+    list:
+    Return a list of all schools.
+
+    create:
+    Create a new school profile.
+
+    update:
+    Update an existing school profile.
+
+    delete:
+    Delete a school profile.
+
+    """
+
     queryset = School.objects.all()
     serializer_class = SchoolSerializer
     permission_classes = [IsStaffOrAccOwner]

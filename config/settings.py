@@ -245,3 +245,16 @@ MAX_VIDEO_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
+
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": "config.urls.schema_view",  # Replace `config.urls` with your main app's URL conf module
+    "USE_SESSION_AUTH": False,  # Disable session authentication
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+        }
+    },
+    "DOC_EXPANSION": "none",  # Collapse all endpoints initially
+}
