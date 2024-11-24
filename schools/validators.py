@@ -41,14 +41,14 @@ def validate_contact(value):
 
 
 # Validator for awards (list of text)
-def validate_award(value):
-    if not isinstance(value, list):
-        raise ValidationError("Awards must be a list of text entries.")
+# def validate_award(value):
+#     if not isinstance(value, list):
+#         raise ValidationError("Awards must be a list of text entries.")
 
-    if any(not isinstance(award, str) or len(award) == 0 for award in value):
-        raise ValidationError("Each award must be a non-empty string.")
+#     if any(not isinstance(award, str) or len(award) == 0 for award in value):
+#         raise ValidationError("Each award must be a non-empty string.")
 
-    return value
+#     return value
 
 
 unique_school_name = UniqueValidator(

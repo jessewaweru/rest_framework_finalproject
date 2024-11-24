@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db.models import Avg, Count
 from datetime import datetime, timedelta
 from django.core.validators import FileExtensionValidator
-
 from rest_framework.validators import ValidationError
 
 # from Users.models import SchoolUserProfile
@@ -87,8 +86,8 @@ class School(models.Model):
         ],
     )
     image = models.ImageField(upload_to="schools/images/", null=True, blank=True)
-    award = models.CharField(max_length=300, blank=True)
     facility = models.TextField(blank=True)
+    award = models.JSONField(blank=True, null=True, default=dict)
     contact = models.CharField(max_length=15, blank=True)
     website = models.URLField(blank=True)
 

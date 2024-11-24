@@ -8,7 +8,6 @@ from .validators import (
     validate_description,
     validate_website,
     validate_contact,
-    validate_award,
 )
 from .models import Bookmark
 from django.db.models import Avg
@@ -30,10 +29,10 @@ class EventSerializer(serializers.ModelSerializer):
 class SchoolSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)
     events = EventSerializer(many=True, read_only=True)
-    # url = serializers.HyperlinkedIdentityField(
-    #     view_name="school-detail",
-    #     lookup_field="pk",
-    # )
+    url = serializers.HyperlinkedIdentityField(
+        view_name="schools:school-detail",
+        lookup_field="pk",
+    )
     name = serializers.CharField(
         validators=[
             validate_name,
@@ -43,24 +42,21 @@ class SchoolSerializer(serializers.ModelSerializer):
     description = serializers.CharField(validators=[validate_description])
     website = serializers.URLField(validators=[validate_website])
     contact = serializers.CharField(validators=[validate_contact])
-    award = serializers.ListField(
-        child=serializers.CharField(), validators=[validate_award]
-    )
 
     class Meta:
         model = School
         fields = [
-            # "url",
+            "url",
             "profile",
             "name",
             "description",
             "location",
             "image",
-            "award",
             "school_status",
             "school_type",
             "boarding_status",
             "facility",
+            "award",
             "contact",
             "website",
             "reviews",
@@ -77,18 +73,18 @@ class SchoolProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
         fields = [
-            # "url",
+            "url",
             "profile",
             "name",
             "description",
             "location",
             "video",
             "image",
-            "award",
             "school_status",
             "school_type",
             "boarding_status",
             "facility",
+            "award",
             "contact",
             "website",
             "reviews",
@@ -173,7 +169,6 @@ class SchoolCompareSerializer(serializers.ModelSerializer):
             "facilities",
             "website",
             "contact",
-            "award",
             "total_bookmarks",
         ]
 

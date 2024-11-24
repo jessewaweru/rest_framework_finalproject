@@ -14,7 +14,6 @@ from django.contrib.auth import get_user_model
 
 # from users.models import Review
 from django.db.models import Avg
-
 from users.serializers import ReviewSerializer
 from .serializers import (
     SchoolProfileSerializer,
@@ -24,7 +23,6 @@ from .serializers import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
-
 from rest_framework import permissions
 from api.permissions import IsStaffOrAccOwner
 
