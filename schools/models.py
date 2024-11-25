@@ -88,6 +88,12 @@ class School(models.Model):
     image = models.ImageField(upload_to="schools/images/", null=True, blank=True)
     facility = models.TextField(blank=True)
     award = models.JSONField(blank=True, null=True, default=dict)
+    performance_file = models.FileField(
+        upload_to="performance_files/",
+        blank=True,
+        null=True,
+    )
+    performance_data = models.JSONField(blank=True, null=True)
     contact = models.CharField(max_length=15, blank=True)
     website = models.URLField(blank=True)
 

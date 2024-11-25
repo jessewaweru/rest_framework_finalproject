@@ -10,3 +10,4 @@ django-cors-headers
 python-decouple
 drf-yasg
 pytest-django
+pandas

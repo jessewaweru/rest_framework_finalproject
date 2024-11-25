@@ -40,15 +40,11 @@ def validate_contact(value):
     return value
 
 
-# Validator for awards (list of text)
-# def validate_award(value):
-#     if not isinstance(value, list):
-#         raise ValidationError("Awards must be a list of text entries.")
-
-#     if any(not isinstance(award, str) or len(award) == 0 for award in value):
-#         raise ValidationError("Each award must be a non-empty string.")
-
-#     return value
+def validate_performance_file(file):
+    allowed_extensions = ["csv", "xlsx"]
+    ext = file.name.split(".")[-1].lower()
+    if ext not in allowed_extensions:
+        raise ValidationError("Only CSV or Excel files are allowed.")
 
 
 unique_school_name = UniqueValidator(

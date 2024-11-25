@@ -8,6 +8,7 @@ from .validators import (
     validate_description,
     validate_website,
     validate_contact,
+    validate_performance_file,
 )
 from .models import Bookmark
 from django.db.models import Avg
@@ -40,6 +41,11 @@ class SchoolSerializer(serializers.ModelSerializer):
         ]
     )
     description = serializers.CharField(validators=[validate_description])
+    performance_data = serializers.SerializerMethodField()
+
+    def get_performance_data(self, obj):
+        return obj.performance_data
+
     website = serializers.URLField(validators=[validate_website])
     contact = serializers.CharField(validators=[validate_contact])
 
@@ -57,6 +63,7 @@ class SchoolSerializer(serializers.ModelSerializer):
             "boarding_status",
             "facility",
             "award",
+            "performance_data",
             "contact",
             "website",
             "reviews",
@@ -85,6 +92,8 @@ class SchoolProfileSerializer(serializers.ModelSerializer):
             "boarding_status",
             "facility",
             "award",
+            "performance_field",
+            "performance_data",
             "contact",
             "website",
             "reviews",

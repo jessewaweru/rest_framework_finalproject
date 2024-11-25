@@ -1,8 +1,6 @@
 from rest_framework import generics
 from schools.models import School
 from schools.serializers import SchoolSerializer
-
-# from api.mixins import IsStaffPermissionMixin
 import logging
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,8 +9,6 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404, get_list_or_404
 from .models import Bookmark, School
 from django.contrib.auth import get_user_model
-
-# from users.models import Review
 from django.db.models import Avg
 from users.serializers import ReviewSerializer
 from .serializers import (
@@ -25,75 +21,13 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework import permissions
 from api.permissions import IsStaffOrAccOwner
-
+from rest_framework.parsers import MultiPartParser
+from io import StringIO
+import pandas as pd
 
 User = get_user_model()
 
 logger = logging.getLogger(__name__)
-
-
-# class SchoolListCreateAPIView(IsStaffPermissionMixin, generics.ListCreateAPIView):
-#     queryset = School.objects.all()
-#     serializer_class = SchoolSerializer
-
-#     def create(self, request, *args, **kwargs):
-#         try:
-#             response = super().create(request, *args, **kwargs)
-#             logger.info(
-#                 f"School created successfully:{response.data.get('name','unknown')}"
-#             )
-#             return response
-#         except ValidationError as e:
-#             logger.error(f"Validation error during school creation:{e.detail}")
-#             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
-#         except Exception as e:
-#             logger.error(f"Unexpected error occured in school creation:{e}")
-#             return Response(
-#                 {"error": "An unexpected error occurred."},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             )
-
-# school_list_create_view = SchoolListCreateAPIView.as_view()
-
-
-# class SchoolDetailAPIView(IsStaffPermissionMixin, generics.RetrieveAPIView):
-#     queryset = School.objects.all()
-#     serializer_class = SchoolSerializer
-#     lookup_field = "pk"
-
-#     def get(self, request, *args, **kwargs):
-#         school = self.get_object()
-#         if request.user.is_authenticated:
-#             # Log the history entry for the viewed school
-#             History.objects.create(
-#                 user=request.user, school=school, viewed_at=timezone.now()
-#             )
-#         # Call the parent class's `get` method to continue with the usual response
-#         return super().get(request, *args, **kwargs)
-
-
-# school_detail_view = SchoolDetailAPIView.as_view()
-
-
-# class SchoolUpdateAPIView(IsStaffPermissionMixin, generics.UpdateAPIView):
-#     queryset = School.objects.all()
-#     serializer_class = SchoolSerializer
-#     lookup_field = "pk"
-
-
-# school_update_view = SchoolUpdateAPIView.as_view()
-
-
-# class SchoolDestroyAPIView(IsStaffPermissionMixin, generics.DestroyAPIView):
-#     queryset = School.objects.all()
-#     serializer_class = SchoolSerializer
-#     lookup_field = "pk"
-
-#     def perform_destroy(self, instance):
-#         super().perform_destroy(instance)
-
-
-# school_destroy_view = SchoolDestroyAPIView.as_view()
 
 
 class SchoolViewSet(viewsets.ModelViewSet):
@@ -119,6 +53,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
     serializer_class = SchoolSerializer
     permission_classes = [IsStaffOrAccOwner]
     lookup_field = "pk"
+    parser_classes = [MultiPartParser]
 
     def create(self, request, *args, **kwargs):
         try:
@@ -152,6 +87,65 @@ class SchoolViewSet(viewsets.ModelViewSet):
             {"message": "School successfully deleted"},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+    def parse_file(file):
+        """
+        Parse an uploaded file (CSV or Excel) into a list of dictionaries.
+        """
+        try:
+            file_extension = file.name.split(".")[-1].lower()
+            if file_extension == "csv":
+                df = pd.read_csv(StringIO(file.read().decode("utf-8")))
+            elif file_extension in ["xls", "xlsx"]:
+                df = pd.read_excel(file)
+            else:
+                raise ValidationError(
+                    "Unsupported file formart.Kindly upload a CSV or Excel file"
+                )
+            return df.to_dict(orient="records")
+        except Exception as e:
+            raise ValidationError(f"error reading the file:{e}")
+
+    def upload_performance(self, request, pk=None):
+        """
+        Handle file upload, validate it, and parse CSV for school performance.
+        """
+        school = self.get_object()
+        file = request.FILES.get("performance_data")  # Retrieve the uploaded file
+        if not file:
+            return Response(
+                {"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            validate_peformance_file(file)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            parsed_data = parse_csv(file)  # Convert the CSV into a dict
+        except ValidationError as e:
+            return Response(
+                {"error": f"Failed to parse file:{str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        school.performance_file = file
+        school.performance_data = parsed_data
+        school.save()
+
+        return Response(
+            {
+                "message": "Performance data has been uploaded successfully",
+                "data": parsed_data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def get_serializer_class(self):
+        if self.request.user.is_authenticated and self.request.user.is_school:
+            return SchoolProfileSerializer
+        return SchoolSerializer
 
 
 """ Views handling the analytics dashboard for the school profile through the school model """
