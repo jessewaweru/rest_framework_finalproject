@@ -23,6 +23,7 @@ from rest_framework import permissions
 from api.permissions import IsStaffOrAccOwner
 from rest_framework.parsers import MultiPartParser
 from io import StringIO
+from django.db import transaction
 import pandas as pd
 
 User = get_user_model()
@@ -59,7 +60,8 @@ class SchoolViewSet(viewsets.ModelViewSet):
         try:
             response = super().create(request, *args, **kwargs)
             logger.info(
-                f"School created successfully: {response.data.get('name', 'unknown')}"
+                f"School created successfully: {response.data.get('name', 'unknown')},"
+                f"created by user:{request.user.username}"
             )
             return response
         except ValidationError as e:
@@ -95,13 +97,16 @@ class SchoolViewSet(viewsets.ModelViewSet):
         try:
             file_extension = file.name.split(".")[-1].lower()
             if file_extension == "csv":
-                df = pd.read_csv(StringIO(file.read().decode("utf-8")))
+                df = pd.read_csv(
+                    StringIO(file.read().decode("utf-8-sig", errors="ignore"))
+                )
             elif file_extension in ["xls", "xlsx"]:
                 df = pd.read_excel(file)
             else:
                 raise ValidationError(
-                    "Unsupported file formart.Kindly upload a CSV or Excel file"
+                    "Unsupported file format.Kindly upload a CSV or Excel file"
                 )
+            logger.info(f"File parsed successfully:{file.name}")
             return df.to_dict(orient="records")
         except Exception as e:
             raise ValidationError(f"error reading the file:{e}")
@@ -121,26 +126,30 @@ class SchoolViewSet(viewsets.ModelViewSet):
             validate_peformance_file(file)
         except ValidationError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            parsed_data = parse_csv(file)  # Convert the CSV into a dict
+            parsed_data = self.parse_file(file)
         except ValidationError as e:
             return Response(
                 {"error": f"Failed to parse file:{str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        school.performance_file = file
-        school.performance_data = parsed_data
-        school.save()
-
-        return Response(
-            {
-                "message": "Performance data has been uploaded successfully",
-                "data": parsed_data,
-            },
-            status=status.HTTP_200_OK,
-        )
+        try:
+            with transaction.atomic():
+                school.performance_file = file
+                school.performance_data = parsed_data
+                school.save()
+                return Response(
+                    {
+                        "message": "Performance data has been uploaded successfully",
+                        "data": parsed_data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            return Response(
+                {"error:Failed to save performance data"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def get_serializer_class(self):
         if self.request.user.is_authenticated and self.request.user.is_school:

@@ -1,12 +1,9 @@
 from django.db import models
 from django.conf import settings
-
 from django.db.models import Avg, Count
 from datetime import datetime, timedelta
 from django.core.validators import FileExtensionValidator
 from rest_framework.validators import ValidationError
-
-# from Users.models import SchoolUserProfile
 from django.apps import apps
 
 
@@ -37,7 +34,7 @@ class Event(models.Model):
 
 class School(models.Model):
     profile = models.OneToOneField(
-        "users.User",  # Reference the model by its app label and model name as a string
+        "users.User",
         on_delete=models.CASCADE,
         related_name="profile",
     )

@@ -31,7 +31,7 @@ class SchoolSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)
     events = EventSerializer(many=True, read_only=True)
     url = serializers.HyperlinkedIdentityField(
-        view_name="schools:school-detail",
+        view_name="school-detail",
         lookup_field="pk",
     )
     name = serializers.CharField(
@@ -71,11 +71,6 @@ class SchoolSerializer(serializers.ModelSerializer):
         ]
 
 
-# # Example function to get the fully qualified URL for a school
-# def get_school_url(school):
-#     return reverse("school_detail", kwargs={"pk": school.pk})
-
-
 class SchoolProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
@@ -92,7 +87,7 @@ class SchoolProfileSerializer(serializers.ModelSerializer):
             "boarding_status",
             "facility",
             "award",
-            "performance_field",
+            "performance_file",
             "performance_data",
             "contact",
             "website",
