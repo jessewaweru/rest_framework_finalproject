@@ -24,6 +24,7 @@ from api.permissions import IsStaffOrAccOwner
 from rest_framework.parsers import MultiPartParser
 from io import StringIO
 from django.db import transaction
+from users.models import History
 import pandas as pd
 
 User = get_user_model()

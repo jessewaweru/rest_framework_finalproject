@@ -90,6 +90,7 @@ class School(models.Model):
         blank=True,
         null=True,
     )
+    rating = models.IntegerField(default=0)
     performance_data = models.JSONField(blank=True, null=True)
     contact = models.CharField(max_length=15, blank=True)
     website = models.URLField(blank=True)
