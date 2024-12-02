@@ -25,6 +25,7 @@ from rest_framework.parsers import MultiPartParser
 from io import StringIO
 from django.db import transaction
 from users.models import History
+from django.utils import timezone
 import pandas as pd
 
 User = get_user_model()
@@ -79,7 +80,9 @@ class SchoolViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         school = self.get_object()
         if request.user.is_authenticated:
-            History.objects.create(user=request.user, school=school, viewed_at=now())
+            History.objects.create(
+                user=request.user, school=school, viewed_at=timezone.now()
+            )
         return super().retrieve(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):

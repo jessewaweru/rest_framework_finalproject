@@ -36,7 +36,7 @@ class School(models.Model):
     profile = models.OneToOneField(
         "users.User",
         on_delete=models.CASCADE,
-        related_name="profile",
+        related_name="school_profile",
     )
     views = models.PositiveIntegerField(default=0)
     name = models.CharField(max_length=300)

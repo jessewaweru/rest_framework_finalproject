@@ -11,3 +11,5 @@ python-decouple
 drf-yasg
 pytest-django
 pandas
+django-otp 
+pyotp
