@@ -3,8 +3,8 @@ from .models import User
 from schools.validators import validate_rating
 from .models import UserProfile
 from .models import Review
-
 from .models import History
+from .utils import send_otp_email
 
 """ This serializer is used to update and create a user and their User profile together"""
 
@@ -38,6 +38,8 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         if not user.is_school:
             UserProfile.objects.create(user=user, **profile_data)
+
+        send_otp_email(user)
         return user
 
     def update(self, instance, validated_data):

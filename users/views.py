@@ -1,5 +1,4 @@
 from rest_framework import generics
-
 from users.models import Review
 from users.serializers import ReviewSerializer
 from rest_framework import viewsets
@@ -15,13 +14,13 @@ from schools.models import Bookmark
 from django.core.exceptions import PermissionDenied
 from .models import Review
 from .serializers import ReviewSerializer
-
 from .serializers import HistorySerializer
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from datetime import timedelta
-
-from .models import History
+from .models import History, User, OTP
+from rest_framework import status
+from .utils import send_otp_email
 
 
 class UserInteractionsViewset(viewsets.ViewSet):
@@ -146,3 +145,65 @@ class HistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
         time_threshold = timezone.now() - timedelta(days=days)
         return History.objects.filter(user=user, viewed_at__gte=time_threshold)
+
+
+""" Views for handling OTP for user loging and resetting of passwords """
+
+
+class Verify_EmailView(APIView):
+    def post(self, request):
+        user = request.user
+        otp = request.data.get("otp")
+
+        if not user.otp.is_valid():
+            return Response(
+                {"error": "OTP expired"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if user.otp.code == otp:
+            user.email_verified = True
+            user.save()
+            return Response(
+                {"message": "Email verified successfully"}, status=status.HTTP_200_OK
+            )
+        return Response({"error": "Invalid code"}, status=status.HTTP_200_OK)
+
+
+class RequestResetPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        try:
+            user = User.objects.get(email=email)
+            send_otp_email(user)
+            return Response(
+                {"message": "OTP sent to your email"}, status=status.HTTP_200_OK
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User with this email does not exist"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+        new_password = request.data.get("new_password")
+
+        try:
+            user = User.objects.get(email=email)
+            if user.otp.is_valid() and user.otp.code == otp:
+                user.set_password(new_password)
+                user.save()
+                return Response(
+                    {"message": "Password has been reset successfully"},
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User with this email doesn't exisit"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
