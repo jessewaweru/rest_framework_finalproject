@@ -100,3 +100,6 @@ class OTP(models.Model):
     def is_valid(self):
         """Check if OTP is valid i.e. 5 minutes"""
         return now() - self.created_at < timedelta(minutes=5)
+
+    def __str__(self):
+        return f"OTP for {self.user.email}: {self.code}"

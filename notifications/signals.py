@@ -5,13 +5,43 @@ from .models import Notification
 from django.core.mail import send_mail
 from django.conf import settings
 from schools.models import School, Bookmark
+from users.utils import send_otp_email
+
+
+# @receiver(post_save, sender=User)
+# def welcome_user_notification(instance, created, **kwargs):
+#     if created:
+#         message = f"Welcome,{instance.username}!Profile was created successfully."
+#         Notification.objects.create(user=instance, message=message)
+#         try:
+#             send_mail(
+#                 subject="Welcome to Amarock Schools.",
+#                 message="Thank you for registering with us.",
+#                 from_email=settings.EMAIL_HOST_USER,
+#                 recipient_list=[instance.email],
+#                 fail_silently=False,
+#             )
+#             print("Welcome email sent successfully")
+#         except Exception as e:
+#             print(f"Failed to send email:{e}")
+
+#         try:
+#             send_otp_email(instance)
+#             print("OTP email sent successfully")
+#         except Exception as e:
+#             print(f"Failed to send OTP email: {e}")
 
 
 @receiver(post_save, sender=User)
-def welcome_user_notification(instance, created, **kwargs):
+def welcome_user_and_send_otp(instance, created, **kwargs):
     if created:
-        message = f"Welcome,{instance.username}!Profile was created successfully."
-        Notification.objects.create(user=instance, message=message)
+        # Send OTP first
+        try:
+            send_otp_email(instance)
+            print("OTP email sent successfully")
+        except Exception as e:
+            print(f"Failed to send OTP email: {e}")
+
         try:
             send_mail(
                 subject="Welcome to Amarock Schools.",
@@ -22,7 +52,7 @@ def welcome_user_notification(instance, created, **kwargs):
             )
             print("Welcome email sent successfully")
         except Exception as e:
-            print(f"Failed to send email:{e}")
+            print(f"Failed to send welcome email: {e}")
 
 
 @receiver(post_save, sender=Review)

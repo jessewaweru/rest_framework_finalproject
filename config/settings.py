@@ -96,8 +96,17 @@ DATABASES = {
     }
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = "/tmp/django_emails"
+# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+# EMAIL_FILE_PATH = "/tmp/django_emails"
+
+
+# Looking to send emails in production? Check out our Email API/SMTP product!
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "sandbox.smtp.mailtrap.io"
+EMAIL_HOST_USER = "ecb70014884cfa"
+EMAIL_HOST_PASSWORD = "d062d9572e3432"
+EMAIL_PORT = "2525"
+DEFAULT_FROM_EMAIL = "no-reply@yourproject.com"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
