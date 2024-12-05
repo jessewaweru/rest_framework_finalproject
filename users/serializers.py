@@ -4,8 +4,7 @@ from schools.validators import validate_rating
 from .models import UserProfile
 from .models import Review
 from .models import History
-
-# from .utils import send_otp_email
+from .utils import send_otp_email
 
 """ This serializer is used to update and create a user and their User profile together"""
 
@@ -31,15 +30,28 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {"password": {"write_only": True}}
 
+    # def create(self, validated_data):
+    #     profile_data = validated_data.pop("profile", {})
+    #     password = validated_data.pop("password")  # Extract password
+    #     user = User.objects.create_user(**validated_data)  # Use create_user method
+    #     user.set_password(password)  # Hash the password
+    #     user.save()
+    #     if not user.is_school:
+    #         UserProfile.objects.create(user=user, **profile_data)
+    #     # send_otp_email(user)
+    #     return user
     def create(self, validated_data):
         profile_data = validated_data.pop("profile", {})
         password = validated_data.pop("password")  # Extract password
-        user = User.objects.create_user(**validated_data)  # Use create_user method
-        user.set_password(password)  # Hash the password
-        user.save()
-        if not user.is_school:
-            UserProfile.objects.create(user=user, **profile_data)
-        # send_otp_email(user)
+        email = validated_data.pop("email")
+        user = User.objects.create_user(
+            email=email,
+            username=validated_data.get("username"),
+            password=password,
+            is_active=False,  # this will temporarily deactivate the user
+        )
+        # Send OTP email for verification
+        send_otp_email(user)
         return user
 
     def update(self, instance, validated_data):

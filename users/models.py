@@ -5,9 +5,8 @@ from django.apps import apps
 from schools.models import School
 from django.utils.timezone import timedelta
 from django.utils.timezone import now
-
-
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 
 class User(AbstractUser):
@@ -92,14 +91,20 @@ class History(models.Model):
         return f"{self.user.username}viewed{self.school.name}on{self.viewed_at}"
 
 
+User = get_user_model()
+
+
 class OTP(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="otp")
     code = models.CharField(max_length=6)
-    created_at = models.DateTimeField(default=now)
+    created_at = models.DateTimeField(
+        default=now, db_index=True
+    )  # the index make searches faster
+    expires_at = models.DateTimeField(null=True)
 
     def is_valid(self):
-        """Check if OTP is valid i.e. 5 minutes"""
-        return now() - self.created_at < timedelta(minutes=5)
+        """Check if OTP is valid i.e. 10 minutes"""
+        return now() - self.created_at < timedelta(minutes=10)
 
     def __str__(self):
         return f"OTP for {self.user.email}: {self.code}"
