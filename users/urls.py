@@ -1,6 +1,11 @@
 from django.urls import path, include
 from . import views
-from .views import verify_email, request_otp
+from .views import (
+    verify_email,
+    request_otp,
+    password_request_reset,
+    password_verify_otp,
+)
 from rest_framework.routers import DefaultRouter
 from .views import UserInteractionsViewset, HistoryViewSet
 
@@ -23,6 +28,10 @@ router.register(
 urlpatterns = [
     path("verify-email/", verify_email, name="verify-email"),
     path("request-otp/", request_otp, name="request_otp"),
+    path(
+        "password-request-reset/", password_request_reset, name="password-request-reset"
+    ),
+    path("password-verify-otp/", password_verify_otp, name="password-verify-otp"),
     path("add-review/", views.review_create_view, name="add-review"),
     path("profile/", views.user_profile_update, name="user-profile"),
     path("dashboard/", views.user_dashboard, name="user-dashboard"),
