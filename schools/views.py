@@ -127,7 +127,9 @@ class SchoolViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            validate_peformance_file(file)
+            validate_peformance_file(
+                file
+            )  # Its the validator handling processing of files located in validators.py in schools app
         except ValidationError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -212,7 +214,9 @@ class BookmarkAPIView(APIView):
         user = request.user
         if user.is_school:
             return Response(
-                {"detail": "Only non-school profile accounts can bookmark a school"},
+                {
+                    "detail": "Only non-school profile accounts can delete a school bookmark"
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         school = get_object_or_404(School, id=pk)
@@ -309,7 +313,7 @@ school_comparison_view = SchoolComparisonAPIView.as_view()
 
 
 """
-This is the API handling the redeirection to school profile accounts 
+This is the API handling the redirection to school profile accounts 
 that are tied to their users who created them. Associated function in class User
  i.e. get_school_profile.
 

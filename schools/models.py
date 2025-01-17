@@ -140,7 +140,8 @@ class School(models.Model):
             raise ValueError("School profile must be linked to a valid user profile.")
         super().save(*args, **kwargs)
 
-    # applied to the video field
+    """ Applied to the video field in the School model."""
+
     def clean(self, *args, **kwargs):
         super().clean()
         if self.video and self.video.size > settings.MAX_VIDEO_UPLOAD_SIZE:

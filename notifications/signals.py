@@ -30,12 +30,12 @@ def new_review_notice(instance, created, **kwargs):
 def new_bookmark_notice(instance, created, **kwargs):
     if created:
         school_user = instance.school.profile
-        message = f"Your school was just bookmarked"
+        message = f"Your school was just bookmarked."
         Notification.objects.create(user=school_user, message=message)
 
 
 @receiver(post_save, sender=School)
 def new_update_notice(instance, created, **kwargs):
     if created:
-        message = f"Your school profile has just been updates"
+        message = f"Your school profile has just been updated."
         Notification.objects.create(user=instance.profile, message=message)

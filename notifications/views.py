@@ -6,8 +6,6 @@ from .serializers import NotificationSerializer
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-# Create your views here.
-
 
 class NotificationViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Notification.objects.all()

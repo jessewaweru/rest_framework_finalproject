@@ -138,7 +138,9 @@ class ReviewCreateAPIView(generics.CreateAPIView):
 review_create_view = ReviewCreateAPIView.as_view()
 
 
-# filter user history based on a specified period- retrive function in SchoolViewSet
+""" Filter user history based on a specified period- retrive function in SchoolViewSet """
+
+
 class HistoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = HistorySerializer
     permission_classes = [IsAuthenticated]
